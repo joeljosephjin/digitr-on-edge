@@ -1,5 +1,7 @@
 # Run Digit Recognizer in your browser using webgpu and onnxruntime-web
 
+[Demo Site](http://13.53.147.31:8085/index.html?provider=wasm)
+
 ## About
 
 This is a number recognizer. an enhancement of an MNIST classifier.
