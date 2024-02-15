@@ -34,6 +34,45 @@
     .higlight:hover {
       border: 1px solid red;
     }
+
+    .tooltip_custom {
+    position: relative;
+    display: inline-block;
+    border-bottom: 1px dotted black;
+  }
+
+  .tooltip_custom .tooltiptext_custom {
+    visibility: hidden;
+    width: 620px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .tooltip_custom .tooltiptext_custom::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+  }
+
+  .tooltip_custom:hover .tooltiptext_custom {
+    visibility: visible;
+    opacity: 1;
+  }
   </style>
 
 </head>
@@ -68,16 +107,6 @@
             <canvas id="img_canvas"></canvas>
         </div>
         <div class="col">
-          <div class="rounded-block" style="margin-top: 40px; max-width: 200px;">
-            <h4>Latencies</h4>
-            <div style="margin-top: 10px;">
-              encoder: <div id="encoder_latency" class="higlight"></div>
-            </div>
-            <div style="margin-top: 10px;">
-              decoder: <div id="decoder_latency" class="higlight"></div>
-            </div>
-          </div>
-
           <div style="margin-top: 30px;">
             <div>Other providers:</div>
             <a href="index.html?provider=wasm">wasm</a>
@@ -87,13 +116,19 @@
 
         </div>
 
-        <p class="text-lg-start">
-        <div id="status" style="font: 1em consolas;"></div>
-        </p>
+        <details>
+          <summary>Logs:</summary>
+          <p class="text-lg-start" id="status" style="font: 1em consolas;"></p>
+        </details>
       </div>
 
-      <div>
+      <!-- <details>
+        <summary>Product Description</summary>
+        <p id="future_log">This is a versatile and comfortable T-shirt made from high-quality cotton. It's perfect for both casual outings and workouts.</p>
+    </details> -->
+
+      <!-- <div>
         <img id="debug-image" src="EgyptianCat.png" style="border-style: solid; border-width: 5px;" />
-      </div>
-
+      </div> -->
+    </div>
 </body>

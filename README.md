@@ -27,6 +27,7 @@ Why use ONNX instead of PyTorch?
 ## plan
 
 - cleanup the UI (in progress)
+    - remove the latency part (in progress)
 - add option for live camera feed
 - change the names in readme
 - make wasm the default

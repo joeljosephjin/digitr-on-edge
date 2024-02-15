@@ -23,7 +23,7 @@ var sess = [];
 var imageImageData;
 
 function log(i) {
-    document.getElementById('status').innerText += `\n[${performance.now().toFixed(3)}] ` + i;
+    document.getElementById('status').innerHTML += `<br>[${performance.now().toFixed(3)}] ` + i;
     console.log(i);
 }
 
@@ -223,7 +223,7 @@ async function imagePreprocessing(imgArr) {
  * handler called when image available
  * run the model (encoder) on the image
  */
-async function handleImage(img) {
+async function modelForward(img) {
     // await htmlDisplayImage(img, 'debug-image'); // for DEBUGGING
     // await htmlDisplayImage(img, 'debug-image'); // for DEBUGGING
 
@@ -254,7 +254,7 @@ async function handleImage(img) {
     canvas.width = width;
     canvas.height = height;
     var ctx = canvas.getContext("2d");
-    console.log(`[handleImage] img.height: ${img.height}### img.width: ${img.width}`)
+    console.log(`[modelForward] img.height: ${img.height}### img.width: ${img.width}`)
     ctx.drawImage(img, 0, 0, width, height);
 
     imageImageData = ctx.getImageData(0, 0, width, height);
@@ -278,7 +278,15 @@ async function handleImage(img) {
     max_prob = Math.max(...probs);
     maxInd = probs.indexOf(max_prob);
 
-    prediction_element.innerText = `Class: ${maxInd}###Probabilities: ${probs}###`;
+    probsArray = Array.from(probs)
+    expProbNums = probsArray.map(function(each_element){
+        return Number(Math.exp(each_element));
+    });
+    totalProbNums = expProbNums.reduce((a, b) => a + b, 0);
+    expProbProbs = expProbNums.map(function(each_element){
+        return Number(((each_element/totalProbNums)*100).toFixed(2));
+    });
+    prediction_element.innerHTML = `<div class="tooltip_custom">Class: ${maxInd}<span class="tooltiptext_custom">Probabilities: ${expProbProbs.join("%, ")}%</span></div>`;
 
     filein.disabled = false;
 }
@@ -315,7 +323,7 @@ async function fetchAndCache(url) {
  * load encoder and decoder sequentially
 Uses functions:
 1. fetchAndCache
-2. handleImage (model forward)
+2. modelForward (model forward)
 3. log
  */
 async function load_model(model, idx, img) {
@@ -359,7 +367,7 @@ async function load_model(model, idx, img) {
         });
         if (img !== undefined) {
             log("img is undefined!");
-            // handleImage(img);
+            // modelForward(img);
         }
         else {log("img is not undefined!")}
         // -- useless garbage
@@ -370,7 +378,7 @@ async function load_model(model, idx, img) {
 /*
 uses the functions:
 1. load_model
-2. handleImage (encoder)
+2. modelForward (encoder)
 3. handleClick (decoder)
 4. log
 */
@@ -398,7 +406,7 @@ async function main() {
         if (FileReader && files && files.length) {
             let fileReader = new FileReader();
             fileReader.onload = () => {
-                img.onload = () => handleImage(img); // [EXT_FUNC] handleImage
+                img.onload = () => modelForward(img); // [EXT_FUNC] modelForward
                 img.src = fileReader.result;
             }
             fileReader.readAsDataURL(files[0]);
