@@ -294,6 +294,7 @@ async function modelForward(img) {
         return Number(((each_element/totalProbNums)*100).toFixed(2));
     });
     prediction_element.innerHTML = `<div class="tooltip_custom">${maxInd}<span class="tooltiptext_custom">Probabilities: ${expProbProbs.join("%, ")}%</span></div>`;
+    log(`[modelForward] Class: ${maxInd} |  Probabilities: ${expProbProbs.join("%, ")}`);
 
     filein.disabled = false;
 }
