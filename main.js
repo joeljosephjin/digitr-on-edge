@@ -6,7 +6,7 @@ const MODEL_WIDTH = 28;
 const MODEL_HEIGHT = 28;
 
 const MODEL_MAP = {
-    sam_b: ["models/mnist_cnn.onnx"],
+    mnist_model: ["models/mnist_cnn.onnx"],
 };
 
 const config = getConfig();
@@ -33,7 +33,7 @@ function log(i) {
 function getConfig() {
     const query = window.location.search.substring(1);
     var config = {
-        model: "sam_b",
+        model: "mnist_model",
         provider: "webgpu",
         device: "gpu",
         threads: "1",
@@ -65,7 +65,7 @@ async function resizeTensor(originalTensor) {
     const reshapedTensor = new ort.Tensor(originalData.slice(0, 28*28), [1, 1, 28, 28]); // Adjust the new shape as needed
 
     // 'reshapedTensor' now contains the data from 'originalTensor' but with the new shape [1, 1, 28, 28]
-    log(`reshapedTensor is ${reshapedTensor.dims}`);
+    log(`[resizeTensor] reshapedTensor is ${reshapedTensor.dims}`);
     return reshapedTensor;
 }
 
@@ -83,7 +83,7 @@ async function multiplyTensor(tensor, scalar) {
 
 async function getKeysAndValues(originalObject) {
     for (key in originalObject) {
-        log(`object[${key}]: ${originalObject[key]}`);
+        log(`[getKeysAndValues] object[${key}]: ${originalObject[key]}`);
     }
     return originalObject[key];
 }
@@ -110,7 +110,7 @@ async function ifWhiteBackground(imgArr, threshold = 0.3) {
     // const percent = count / imgArr.length;
     var percent = count / 784;
 
-    log(`percent whitenesss is ${percent}; count is ${count}; ${imgArr.dims}`)
+    log(`[ifWhiteBackground] percent whitenesss is ${percent}; count is ${count}; ${imgArr.dims}`)
 
     // Check if the percentage exceeds the threshold
     if (percent >= threshold) {
@@ -135,7 +135,7 @@ async function getImageDataFromTensor(imageTensor, width, height) {
     tensorData = Array.from(imageTensor.data);
     tensorData = tensorData.map(value => value * 255);
 
-    console.log(`[htmlDisplayImage] tensorData.length: ${tensorData.length}`)
+    log(`[getImageDataFromTensor] tensorData.length: ${tensorData.length}`)
 
     const grayscaleData = new Uint8ClampedArray(tensorData);
 
@@ -156,7 +156,7 @@ async function getImageDataFromTensor(imageTensor, width, height) {
     // Create an ImageData object from the RGBA pixel data
     const imageData = new ImageData(rgbaData, width, height);
 
-    console.log(`[htmlDisplayImage] imageData: ${imageData}###`)
+    log(`[getImageDataFromTensor] imageData: ${imageData}###`)
 
     // Use imageData with a canvas, putImageData(), or other canvas operations
     return imageData;
@@ -166,7 +166,7 @@ async function htmlDisplayImage(imageTensor, elementID, width=28, height=28) {
     // width = imageTensor.dims[2];
     // height = imageTensor.dims[3];
 
-    console.log(`[htmlDisplayImage] imageTensor: ${width}, ${height}###`);
+    log(`[htmlDisplayImage] imageTensor: ${width}, ${height}###`);
 
     const imageData = await getImageDataFromTensor(imageTensor, width, height);
 
@@ -188,15 +188,18 @@ async function htmlDisplayImage(imageTensor, elementID, width=28, height=28) {
 * invert a white background to black or remain so if black
 */
 async function invertWhiteBackground(imgArr) {
+
+
     isWhite = await ifWhiteBackground(imgArr);
     // isWhite = true;
     if (isWhite == true) {
         // invert image
-        log(`yaay! image is white background; gotta invert!`);
+        log(`[invertWhiteBackground] yaay! image is white background; gotta invert!`);
         imgArr = await invertImage(imgArr);
+        log(`[invertWhiteBackground] yaay! image's white background inverted successfully!`);
         return imgArr;
     } else {
-        log(`noo! img is NOT white background`);
+        log(`[invertWhiteBackground] noo! img is NOT white background`);
         return imgArr;
     }
 }
@@ -254,24 +257,28 @@ async function modelForward(img) {
     canvas.width = width;
     canvas.height = height;
     var ctx = canvas.getContext("2d");
-    console.log(`[modelForward] img.height: ${img.height}### img.width: ${img.width}`)
+    log(`[modelForward] img.height: ${img.height}### img.width: ${img.width}`)
     ctx.drawImage(img, 0, 0, width, height);
 
     imageImageData = ctx.getImageData(0, 0, width, height);
 
+    log(`[modelForward] before await imagePreprocessing...`);
     const imgTensor = await imagePreprocessing(imageImageData);
+    log(`[modelForward] after await imagePreprocessing...`);
 
     // await htmlDisplayImage(imgTensor, 'debug-image'); // for DEBUGGING
 
-    log(`###imgTensor.dims is this: ${imgTensor.dims}###`);
-    log(`###imgTensor sample is this: ${imgTensor.data.slice(110, 119)}###`);
+    log(`[modelForward] ###imgTensor.dims is this: ${imgTensor.dims}###`);
+    log(`[modelForward] ###imgTensor sample is this: ${imgTensor.data.slice(110, 119)}###`);
     
     const feed = { "input.1": imgTensor };
     const s = await sess[0];
 
     const start = performance.now();
-    console.log("[debug] s:", s)
+    log("[modelForward] s:", s)
+    log(`[modelForward] forward passing image through the model`);
     image_embeddings = await s.run(feed); // MODEL.FORWARD
+    log(`[modelForward] forward passing completed!`);
 
     const emb_property = await getKeysAndValues(image_embeddings);
     probs = emb_property['cpuData'];
@@ -286,7 +293,7 @@ async function modelForward(img) {
     expProbProbs = expProbNums.map(function(each_element){
         return Number(((each_element/totalProbNums)*100).toFixed(2));
     });
-    prediction_element.innerHTML = `<div class="tooltip_custom">Class: ${maxInd}<span class="tooltiptext_custom">Probabilities: ${expProbProbs.join("%, ")}%</span></div>`;
+    prediction_element.innerHTML = `<div class="tooltip_custom">${maxInd}<span class="tooltiptext_custom">Probabilities: ${expProbProbs.join("%, ")}%</span></div>`;
 
     filein.disabled = false;
 }
@@ -307,14 +314,14 @@ async function fetchAndCache(url) {
         if (cachedResponse == undefined) {
             await cache.add(url);
             cachedResponse = await cache.match(url);
-            log(`${url} (from network)`);
+            log(`[fetchAndCache] ${url} loaded (from network)`);
         } else {
-            log(`${url} (from cache)`);
+            log(`[fetchAndCache] ${url} loaded (from cache)`);
         }
         const data = await cachedResponse.arrayBuffer();
         return data;
     } catch (error) {
-        log(`${url} (from network)`);
+        log(`[fetchAndCache] ${url} (from network)`);
         return await fetch(url).then(response => response.arrayBuffer());
     }
 }
@@ -326,7 +333,10 @@ Uses functions:
 2. modelForward (model forward)
 3. log
  */
-async function load_model(model, idx, img) {
+async function load_model(model, img) {
+    idx=0;
+    log(`[load_model] idx: ${idx}`);
+
     // --- select device webnn or webgpu
     let provider = config.provider;
     switch (provider) {
@@ -339,39 +349,34 @@ async function load_model(model, idx, img) {
                 deviceType: config.device,
                 powerPreference: 'default'
             };
+            log('[load_model] webnn activated!');
             break;
         case "webgpu":
             if (!navigator.gpu) {
                 throw new Error("webgpu is NOT supported");
             }
+            log('[load_model] webgpu activated!');
             break;
     }
     const opt = { executionProviders: [provider] };
     // --- select device webnn or webgpu
-
-    log(`[load_model] idx is what? ${idx}`)
 
     fetchAndCache(model[idx]).then((data) => {
         sess[idx] = ort.InferenceSession.create(data, opt); // data and device
 
         // -- useless garbage
         sess[idx].then(() => {
-            log(`${model[idx]} loaded. yoy`);
-            if (idx == 0) {
-                log("[load_model] idx is 0; so going for next recursion of model");
-                // load_model(model, 1); // recursive load_model ?
-            }
+            log(`[load_model] [fetchAndCache.then] ${model[idx]} successfully loaded!`);
         }, (e) => {
-            log(`${model[idx]} failed with ${e}.`);
+            log(`[load_model] [fetchAndCache.then] ${model[idx]} load failed with ${e}.`);
             throw e;
         });
+
         if (img !== undefined) {
-            log("img is undefined!");
+            log("[load_model] [fetchAndCache.then] img is defined!");
             // modelForward(img);
         }
-        else {log("img is not undefined!")}
-        // -- useless garbage
-
+        else {log("[load_model] [fetchAndCache.then] img is undefined!")}
     })
 }
 
@@ -383,36 +388,41 @@ uses the functions:
 4. log
 */
 async function main() {
-    const model = MODEL_MAP[config.model]; // load the model (encoder or decoder) ?
-    // --- [1] get the image from the user
-    canvas = document.getElementById("img_canvas");
-    // canvas.addEventListener("click", handleClick);
-    // canvas.style.cursor = "wait";
+
+    const model = MODEL_MAP[config.model]; // load the model
+
+    log(`[main] config.model: ${config.model}`);
 
     filein = document.getElementById("file-in");
-    // decoder_latency = document.getElementById("decoder_latency");
 
-    let img = document.getElementById("original-image");
-    // --- [1] get the image from the user
+    let img = document.getElementById("original-image"); // egyptian-cat
 
-    console.log("[debug] BEFORE model loading...")
-    load_model(model, 0, img).then(() => {}, (e) => {log(e);}); // [EXT_FUNC] load_model
-    console.log("[debug] model loaded; sess:", sess)
-    // load_model(model, 0, img).then(() => {}, (e) => {}); // [EXT_FUNC] load_model
+    log("[main] BEFORE model loading...")
+    load_model(model, img).then(() => {}, (e) => {log(e);}); // [EXT_FUNC] load_model
+    log("[main] model loaded; sess:", sess)
+
+    // log("[main] before modelForward...")
+    // modelForward(img);
+    // log("[main] after modelForward...")
+    // img.onload = () => modelForward(img);
 
     // --- [2] image upload
     filein.onchange = function (evt) {
+        log(`[main] [filein.onchange] just after filein.onchange ...`);
         let target = evt.target || window.event.src, files = target.files;
         if (FileReader && files && files.length) {
+            log(`[main] [filein.onchange] [if (FileReader &&] just after if (FileReader && ...`);
             let fileReader = new FileReader();
             fileReader.onload = () => {
+                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] before running modelForward(img); img.onload: img.onload`);
                 img.onload = () => modelForward(img); // [EXT_FUNC] modelForward
+                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] after running modelForward(img) successfully!; img.onload: img.onload`);
                 img.src = fileReader.result;
+                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] img.src: img.src`);
             }
             fileReader.readAsDataURL(files[0]);
         }
     };
-    // --- [2] image upload
 }
 
 document.addEventListener("DOMContentLoaded", () => { main(); });

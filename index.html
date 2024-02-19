@@ -8,6 +8,63 @@
     <script src="./dist/bundle.min.js"></script>
    
   <style>
+
+    input[type="file"] {
+      position: relative;
+      color: transparent;
+    }
+
+    input[type="file"]::file-selector-button {
+      width: 47%;
+      color: transparent;
+    }
+
+    /* Faked label styles and icon */
+    input[type="file"]::before {
+      position: absolute;
+      pointer-events: none;
+      top: 10px;
+      left: 16px;
+      height: 20px;
+      width: 20px;
+      content: "";
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%230964B0'%3E%3Cpath d='M18 15v3H6v-3H4v3c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2v-3h-2zM7 9l1.41 1.41L11 7.83V16h2V7.83l2.59 2.58L17 9l-5-5-5 5z'/%3E%3C/svg%3E");
+    }
+
+    input[type="file"]::after {
+      position: absolute;
+      pointer-events: none;
+      top: 20%;
+      left: 12%;
+      color: #0964b0;
+      content: "Upload Image";
+    }
+
+    /* file upload button */
+    input[type="file"]::file-selector-button {
+      border-radius: 4px;
+      padding: 0 16px;
+      height: 40px;
+      cursor: pointer;
+      background-color: white;
+      border: 1px solid rgba(0, 0, 0, 0.16);
+      box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.05);
+      margin-right: 16px;
+      transition: background-color 200ms;
+    }
+
+    /* file upload button hover state */
+    input[type="file"]::file-selector-button:hover {
+      background-color: #f3f4f6;
+    }
+
+    /* file upload button active state */
+    input[type="file"]::file-selector-button:active {
+      background-color: #e5e7eb;
+    }
+
+    /* ------ input ------ */
+
     /* Add rounded corners to blocks */
     .rounded-block {
       border-radius: 10px;
@@ -43,7 +100,7 @@
 
   .tooltip_custom .tooltiptext_custom {
     visibility: hidden;
-    width: 620px;
+    width: 750%;
     background-color: #555;
     color: #fff;
     text-align: center;
@@ -51,18 +108,19 @@
     padding: 5px 0;
     position: absolute;
     z-index: 1;
-    bottom: 125%;
+    bottom: 75%;
     left: 50%;
     margin-left: -10px;
     opacity: 0;
     transition: opacity 0.3s;
+    font-size: 10px;
   }
 
   .tooltip_custom .tooltiptext_custom::after {
     content: "";
     position: absolute;
-    top: 100%;
-    left: 50%;
+    top: 10%;
+    left: 5%;
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
@@ -73,26 +131,84 @@
     visibility: visible;
     opacity: 1;
   }
+
+  .prediction_text {
+    font-size: 400%;
+    /* border-style: dashed; */
+    border-top-style: dotted;
+    border-width: 3px;
+    /* max-width: 500px; */
+    width: 100%;
+    text-align: center;
+    border-radius: 5px;
+    margin: auto;
+    /* background-color:gray; */
+  }
+
+  .prediction_box{
+    text-align: center; 
+    font-size: 120%;
+    border-style: solid;
+    /* color: #fff; */
+    width: 35%;
+    text-align: center;
+    margin: auto;
+    border-radius: 15px;
+    /* background-color:greenyellow; */
+  }
+
+  .original_image_box{
+    text-align: center;
+    border-style: solid;
+    border-width: 3px;
+    width: 55%;
+    margin: auto;
+    border-radius: 15px;
+    height: 28%;
+  }
+
+  .container-fluid{
+    border-style: solid;
+    width: 32%;
+    border-radius: 15px;
+    margin-top: 1%;
+    border-width: 3px;
+  }
+
+  .bullet_point_text{
+    text-align: left;
+  }
+
+  .title_text{
+    /* text-align: center;  */
+    /* margin-top: 0.3%;  */
+    margin: auto;
+    font-weight: bold;
+    border-bottom-style: dotted;
+    width: 100%;
+    border-width: 3px;
+    /* background-color: grey; */
+  }
+
   </style>
 
 </head>
 
 <body>
   <title>Handwritten Image Classifier</title>
+
+
   <div class="container-fluid">
-    <h2>Handwritten Image Classifier</h2>
-    
-<br>
 
-    <div style="display: none;">
-      <img id="original-image" src="EgyptianCat.png" />
+    <h2 class="title_text">Handwritten Image Classifier</h2>
+
+    <br>
+
+    <div class="original_image_box">
+      <img style="border-radius: 15px;" id="original-image" src="two.jpg" width="100%" height="100%"/>
     </div>
 
-    <div>
-      Prediction: <div id="prediction-element"></div>
-    </div>
-
-    <div style="margin-top: 40px;">
+    <div style="margin-top: 40px; text-align: center; margin-left: 33%;">
       <form>
         <div class="form-group ">
           <input title="Upload Image" type="file" id="file-in" name="file-in"
@@ -101,25 +217,28 @@
       </form>
     </div>
 
+    <br>
+
+    <div class="prediction_box">
+      Prediction: <div id="prediction-element" class="prediction_text">2</div>
+    </div>
+
     <div>
       <div class="row">
         <div class="col">
             <canvas id="img_canvas"></canvas>
         </div>
-        <div class="col">
+        <div class="col" style="text-align: center;">
           <div style="margin-top: 30px;">
-            <div>Other providers:</div>
-            <a href="index.html?provider=wasm">wasm</a>
-            <a href="index.html?provider=webgpu">webgpu</a>
-            <a href="index.html?provider=webnn">webnn</a>
+            <div style="text-align: left; font-weight: bold;">Device:</div>
+            <ul>
+              <li class="bullet_point_text"><a href="index.html?provider=wasm">wasm</a></li>
+              <li class="bullet_point_text"><a href="index.html?provider=webgpu">webgpu</a></li>
+              <li class="bullet_point_text"><a href="index.html?provider=webnn">webnn</a></li>
+            </ul>
           </div>
 
         </div>
-
-        <details>
-          <summary>Logs:</summary>
-          <p class="text-lg-start" id="status" style="font: 1em consolas;"></p>
-        </details>
       </div>
 
       <!-- <details>
@@ -131,4 +250,11 @@
         <img id="debug-image" src="EgyptianCat.png" style="border-style: solid; border-width: 5px;" />
       </div> -->
     </div>
+  </div>
+
+  <details>
+    <summary>Logs:</summary>
+    <p class="text-lg-start" id="status" style="font: 1em consolas;"></p>
+  </details>
+
 </body>

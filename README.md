@@ -13,14 +13,15 @@ Why on the edge? Why not run on the backend?
 Why use ONNX instead of PyTorch?
 - PyTorch library is heavy requiring higher usage of RAM and disk space.
 
-
-
-
 ## how to develop
 
 `sudo npx light-server -s . -p 8888` (this is fully enough ig)
 
-`npm run watch` (garbage)
+for automatically building: (run in another terminal)
+
+`npm run watch`
+
+for manually building:
 
 `npm run build`
 
