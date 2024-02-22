@@ -232,7 +232,8 @@ async function modelForward(img) {
     // await htmlDisplayImage(img, 'debug-image'); // for DEBUGGING
 
     const prediction_element = document.getElementById("prediction-element");
-    // prediction_element.innerText = "";
+    prediction_element.innerHTML = "?";
+    
     filein.disabled = true;
     const canvas = document.createElement('canvas');
     // decoder_latency.innerText = "";
