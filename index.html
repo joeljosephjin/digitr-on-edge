@@ -195,10 +195,15 @@
     width: 100%;
     border-width: 3px;
     font-size: 1.8em;
+    padding: 1.3%;
     /* background-color: grey; */
   }
 
   </style>
+
+  <script>
+ 
+  </script>
 
 </head>
 
@@ -212,8 +217,11 @@
 
     <br>
 
-    <div class="original_image_box">
+    <div class="original_image_box" id="camera_div">
       <img style="border-radius: 15px;" id="original-image" src="two.jpg" width="100%" height="100%"/>
+    </div>
+    <div style="text-align: center; font-style: italic; font-size: 12px; padding-top: 2px;">
+      <input type="checkbox" id="use_camera" name="use_camera" value="true"> Use Camera
     </div>
 
     <div style="margin-top: 40px; text-align: center; margin-left: 33%;">
@@ -249,14 +257,6 @@
         </div>
       </div>
 
-      <!-- <details>
-        <summary>Product Description</summary>
-        <p id="future_log">This is a versatile and comfortable T-shirt made from high-quality cotton. It's perfect for both casual outings and workouts.</p>
-    </details> -->
-
-      <!-- <div>
-        <img id="debug-image" src="EgyptianCat.png" style="border-style: solid; border-width: 5px;" />
-      </div> -->
     </div>
   </div>
 

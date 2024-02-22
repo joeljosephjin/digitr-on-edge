@@ -31,11 +31,10 @@ for manually building:
 - cleanup the UI (done)
     - remove the latency part (done)
     - collapsible log, probs as toolkit (done)
-- make webgpu, webnn work (in progress)
-- add option for live camera feed
-- change the names in readme
-- make wasm the default
-- do new UI
+- make webgpu (done), webnn work (not done)
+- add option for live camera feed (done)
+- do new UI (done)
+- draw rect. coords on the camera feed
 
 
 ## warnings

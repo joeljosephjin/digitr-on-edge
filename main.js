@@ -27,6 +27,7 @@ function log(i) {
     console.log(i);
 }
 
+
 /**
  * get some parameters from url
  */
@@ -381,6 +382,109 @@ async function load_model(model, img) {
     })
 }
 
+
+
+
+// ----------------------------------
+
+shouldCamOn = false;
+var captureInterval;
+
+function captureCameraImage() {
+  var video = document.querySelector('video');
+
+  var img = document.getElementById('original-image');
+
+  // Capture an image from the video stream
+  var canvas = document.createElement('canvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  var context = canvas.getContext('2d');
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  // Set the captured image as the src of the img element
+  img.src = canvas.toDataURL('image/png');
+//   img.style.display = "inline";
+  console.log(`[captureCameraImage] img.src rewritten!`);
+
+  modelForward(img);
+  console.log(`[captureCameraImage] model forward done!`);
+}
+
+function switchCamera() {
+  shouldCamOn = !shouldCamOn;
+
+  if (shouldCamOn==true) {
+    onCamera();
+  } else {
+    offCamera();
+  }
+}
+
+function offCamera() {
+  console.log(`[offCamera] button pressed... shouldCamOn: ${shouldCamOn}`);
+
+  var videoElement = document.getElementById('video-element');
+
+  var stream = videoElement.srcObject;
+    var tracks = stream.getTracks();
+    tracks.forEach(function(track) {
+        track.stop();
+    });
+
+    videoElement.remove();
+  console.log(`[offCamera] camera_div removed...`);
+
+  var originalImage = document.getElementById('original-image');
+  originalImage.style.display = "inline";
+  console.log(`[offCamera] originalImage recovered...`);
+
+  let img = document.getElementById("original-image");
+  modelForward(img);
+  console.log(`[offCamera] originalImage prediction complete...`);
+
+  if (captureInterval) {
+    clearInterval(captureInterval);
+  }
+}
+
+function onCamera() {
+  console.log(`[onCamera] button pressed... shouldCamOn: ${shouldCamOn}`);
+  // Get the div element
+  var divElement = document.getElementById('camera_div');
+  
+  var originalImage = document.getElementById('original-image');
+  originalImage.style.display = "none";
+
+  // Check if getUserMedia is available
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      // Request access to the camera
+      navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function(stream) {
+              // Create a video element
+              var videoElement = document.createElement('video');
+              videoElement.id = "video-element";
+              // Set the source of the video element to the camera stream
+              videoElement.srcObject = stream;
+              // Autoplay the video
+              videoElement.autoplay = true;
+              // Set the width of the video to match the container
+              videoElement.style.width = '100%';
+              videoElement.style.height = '100%';
+              // Append the video element to the div
+              divElement.appendChild(videoElement);
+
+              captureInterval = setInterval(captureCameraImage, 3000);
+          })
+          .catch(function(error) {
+              console.error('Error accessing the camera:', error);
+          });
+  } else {
+      console.error('getUserMedia is not supported on this browser');
+  }
+}
+// ---------------------------------------
+
 /*
 uses the functions:
 1. load_model
@@ -402,28 +506,42 @@ async function main() {
     load_model(model, img).then(() => {}, (e) => {log(e);}); // [EXT_FUNC] load_model
     log("[main] model loaded; sess:", sess)
 
-    // log("[main] before modelForward...")
-    // modelForward(img);
-    // log("[main] after modelForward...")
-    // img.onload = () => modelForward(img);
+    log("[main] [special] before lone modelForward...")
+    await new Promise(r => setTimeout(r, 2000));
+    modelForward(img);
+    log("[main] [special] after lone modelForward...")
 
     // --- [2] image upload
+    img.onload = function () {
+        log(`[main] [img.onload] before model forwarding image...`);
+        modelForward(img);
+        log(`[main] [img.onload] after model forwarding image...`);
+    }
+
     filein.onchange = function (evt) {
-        log(`[main] [filein.onchange] just after filein.onchange ...`);
-        let target = evt.target || window.event.src, files = target.files;
+        log(`[main] [filein.onchange] beginning of filein.onchange ...`);
+        let target = evt.target || window.event.src;
+        let files = target.files;
         if (FileReader && files && files.length) {
-            log(`[main] [filein.onchange] [if (FileReader &&] just after if (FileReader && ...`);
+            log(`[main] [filein.onchange] [if (FileReader &&] before new filereader`);
             let fileReader = new FileReader();
+            log(`[main] [filein.onchange] [if (FileReader &&] after new filereader`);
             fileReader.onload = () => {
-                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] before running modelForward(img); img.onload: img.onload`);
-                img.onload = () => modelForward(img); // [EXT_FUNC] modelForward
-                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] after running modelForward(img) successfully!; img.onload: img.onload`);
+                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] before img.src = fileReader.result`);
                 img.src = fileReader.result;
-                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] img.src: img.src`);
+                log(`[main] [filein.onchange] [if (FileReader &&] [fileReader.onload] after img.src = fileReader.result`);
             }
             fileReader.readAsDataURL(files[0]);
         }
     };
+
+    // --- use_camera
+    cameraElement = document.getElementById("use_camera");
+    cameraElement.onchange = function (evt) {
+        switchCamera();
+    }
+
 }
+
 
 document.addEventListener("DOMContentLoaded", () => { main(); });
