@@ -34,6 +34,8 @@ for manually building:
 - make webgpu (done), webnn work (not done)
 - add option for live camera feed (done)
 - do new UI (done)
+- fix working on mobile
+- make server running as an option as well
 - draw rect. coords on the camera feed
 
 
